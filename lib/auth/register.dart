@@ -10,6 +10,8 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
-    return Container(child: Text("hi"),);
+    return Container(
+      child: Text("hi"),
+    );
   }
 }
