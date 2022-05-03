@@ -6,6 +6,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:seller/widgets/cus_textfield.dart';
+import 'package:seller/widgets/error_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -72,6 +73,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController phoneController = TextEditingController();
   TextEditingController locationController = TextEditingController();
   TextEditingController emailController = TextEditingController();
+  formValidation() async {
+    if (imageXfile == null) {
+      showDialog(
+          context: context,
+          builder: (c) {
+            return const ErrorDialog(
+              message: "select an image",
+            );
+          });
+    } else {
+      if (passwordController.text == confirmPasswordController.text) {
+        if (confirmPasswordController.text.isNotEmpty &&
+            emailController.text.isNotEmpty &&
+            nameController.text.isNotEmpty &&
+            phoneController.text.isNotEmpty &&
+            locationController.text.isNotEmpty) {
+//upload image
+
+        } else {
+          showDialog(
+              context: context,
+              builder: (c) {
+                return const ErrorDialog(
+                  message: "fill required fields",
+                );
+              });
+        }
+      } else {
+        showDialog(
+            context: context,
+            builder: (c) {
+              return const ErrorDialog(
+                message: "Password not matching",
+              );
+            });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +214,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               height: 20,
             ),
             ElevatedButton(
-              onPressed: () => print("object1"),
+              onPressed: () {
+                formValidation();
+              },
               child: const Text(
                 "Sign Up ",
                 style:
