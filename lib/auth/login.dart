@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
             style: ElevatedButton.styleFrom(
                 primary: Colors.cyanAccent,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 50, vertical: 10)),
+                    const EdgeInsets.symmetric(horizontal: 50, vertical: 20)),
           ),
           const SizedBox(
             height: 30,

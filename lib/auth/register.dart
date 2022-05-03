@@ -29,6 +29,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
   List<Placemark>? placemarks;
 
   getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
     Position newPosition = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
@@ -124,7 +144,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       data: Icons.my_location,
                       controller: locationController,
                       hintText: "Location",
-                      enabled: false,
                     ),
                     Container(
                       width: 400,
@@ -165,11 +184,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               style: ElevatedButton.styleFrom(
                 primary: Colors.red,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                    const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
               ),
             ),
             const SizedBox(
-              height: 25,
+              height: 30,
             )
           ],
         ),
