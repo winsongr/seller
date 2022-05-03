@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -15,6 +16,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   XFile? imageXfile;
 
   final ImagePicker _picker = ImagePicker();
+  _getImage() async {
+    imageXfile = await _picker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      imageXfile;
+    });
+  }
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -36,6 +43,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               height: 10,
             ),
             InkWell(
+              onTap: () {
+                _getImage();
+              },
               child: CircleAvatar(
                 radius: MediaQuery.of(context).size.width * 0.20,
                 backgroundColor: Colors.white,
@@ -134,7 +144,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
               ),
-            ),const SizedBox(height: 25,)
+            ),
+            const SizedBox(
+              height: 25,
+            )
           ],
         ),
       ),
