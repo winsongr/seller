@@ -90,12 +90,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     CustomTextField(
                       isObsecre: false,
-                      data: Icons.location_city,
+                      data: Icons.my_location,
                       controller: locationController,
                       hintText: "Location",
+                      enabled: false,
                     ),
+                    Container(
+                      width: 400,
+                      height: 40,
+                      alignment: Alignment.center,
+                      child: ElevatedButton.icon(
+                        onPressed: () => print("object"),
+                        label: const Text(
+                          "Get My Current Location",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        icon: const Icon(
+                          Icons.location_on,
+                          color: Colors.white,
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.amber,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                      ),
+                    )
                   ],
-                ))
+                )),
+            const SizedBox(
+              height: 20,
+            ),
+            ElevatedButton(
+              onPressed: () => print("object1"),
+              child: const Text(
+                "Sign Up ",
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.red,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 80, vertical: 10),
+              ),
+            ),const SizedBox(height: 25,)
           ],
         ),
       ),
