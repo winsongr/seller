@@ -2,6 +2,8 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:seller/widgets/cus_textfield.dart';
 
@@ -21,6 +23,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() {
       imageXfile;
     });
+  }
+
+  Position? position;
+  List<Placemark>? placemarks;
+
+  getCurrentLocation() async {
+    Position newPosition = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+    position = newPosition;
+    placemarks = await placemarkFromCoordinates(
+      position!.latitude,
+      position!.longitude,
+    );
+    Placemark pMark = placemarks![0];
+    String completeAddress =
+        '${pMark.subThoroughfare} ${pMark.thoroughfare},${pMark.subLocality} ${pMark.locality},${pMark.subAdministrativeArea},${pMark.administrativeArea},${pMark.postalCode},${pMark.country} ';
+
+    locationController.text = completeAddress;
   }
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -110,7 +131,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       height: 40,
                       alignment: Alignment.center,
                       child: ElevatedButton.icon(
-                        onPressed: () => print("object"),
+                        onPressed: () {
+                          getCurrentLocation();
+                        },
                         label: const Text(
                           "Get My Current Location",
                           style: TextStyle(color: Colors.white),
