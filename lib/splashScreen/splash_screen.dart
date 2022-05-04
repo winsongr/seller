@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:seller/auth/auth_screen.dart';
+import 'package:seller/global/global.dart';
+import 'package:seller/mainSceens/home_screen.dart';
 
 class MySplashScreen extends StatefulWidget {
   const MySplashScreen({Key? key}) : super(key: key);
@@ -13,13 +15,21 @@ class MySplashScreen extends StatefulWidget {
 class _MySplashScreenState extends State<MySplashScreen> {
   startTimer() {
     Timer(const Duration(seconds: 1), () async {
-      Navigator.push(
+      if (firebaseAuth.currentUser !=null) {
+         Navigator.push(
+          context, MaterialPageRoute(builder: (c) => HomeScreen()));
+      }
+      else{
+         Navigator.push(
           context, MaterialPageRoute(builder: (c) => const AuthScreen()));
+      }
+     
     });
   }
 
   @override
   void initState() {
+    // ignore: todo
     // TODO: implement initState
     super.initState();
 

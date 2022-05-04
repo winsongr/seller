@@ -1,16 +1,17 @@
 import 'dart:io';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:seller/global/global.dart';
 import 'package:seller/mainSceens/home_screen.dart';
 import 'package:seller/widgets/cus_textfield.dart';
 import 'package:seller/widgets/error_dialog.dart';
 import 'package:seller/widgets/loading_dialog.dart';
 import 'package:firebase_storage/firebase_storage.dart' as fstorage;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -138,7 +139,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void authenticateSellerAndSignUp() async {
     User? currentUser;
-    final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
     await firebaseAuth
         .createUserWithEmailAndPassword(
       email: emailController.text.trim(),
@@ -180,12 +180,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       "lng": position!.longitude,
     });
     //save locally
-    SharedPreferences? sharedpreferences =
-        await SharedPreferences.getInstance();
-    await sharedpreferences.setString("uid", currentUser.uid);
-    await sharedpreferences.setString("name", nameController.text.trim());
-    await sharedpreferences.setString("email", currentUser.email.toString());
-    await sharedpreferences.setString("photoUrl", sellerImageUrl);
+    sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences!.setString("uid", currentUser.uid);
+    await sharedPreferences!.setString("name", nameController.text.trim());
+    await sharedPreferences!.setString("email", currentUser.email.toString());
+    await sharedPreferences!.setString("photoUrl", sellerImageUrl);
   }
 
   @override
