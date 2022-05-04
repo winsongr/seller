@@ -1,13 +1,16 @@
 import 'dart:io';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:seller/mainSceens/home_screen.dart';
 import 'package:seller/widgets/cus_textfield.dart';
 import 'package:seller/widgets/error_dialog.dart';
 import 'package:seller/widgets/loading_dialog.dart';
-import 'package:firebase_storage/firebase_storage.dart' as fStorage;
+import 'package:firebase_storage/firebase_storage.dart' as fstorage;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -31,7 +34,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   List<Placemark>? placemarks;
 
   String sellerImageUrl = "";
-
+  String completeAddress = "";
   getCurrentLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -62,7 +65,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       position!.longitude,
     );
     Placemark pMark = placemarks![0];
-    String completeAddress =
+    completeAddress =
         '${pMark.subThoroughfare} ${pMark.thoroughfare},${pMark.subLocality} ${pMark.locality},${pMark.subAdministrativeArea},${pMark.administrativeArea},${pMark.postalCode},${pMark.country} ';
 
     locationController.text = completeAddress;
@@ -98,17 +101,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 return const LoadingDialog(message: "Registering Account");
               });
           String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-          fStorage.Reference reference = fStorage.FirebaseStorage.instance
+          fstorage.Reference reference = fstorage.FirebaseStorage.instance
               .ref()
               .child("sellers")
               .child(fileName);
-          fStorage.UploadTask uploadTask =
+          fstorage.UploadTask uploadTask =
               reference.putFile(File(imageXfile!.path));
-          fStorage.TaskSnapshot taskSnapshot =
+          fstorage.TaskSnapshot taskSnapshot =
               await uploadTask.whenComplete(() => {});
-          await taskSnapshot.ref
-              .getDownloadURL()
-              .then((url) => {sellerImageUrl = url  });
+          await taskSnapshot.ref.getDownloadURL().then((url) {
+            sellerImageUrl = url;
+
+            //save to firebase
+            authenticateSellerAndSignUp();
+          });
         } else {
           showDialog(
               context: context,
@@ -128,6 +134,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
             });
       }
     }
+  }
+
+  void authenticateSellerAndSignUp() async {
+    User? currentUser;
+    final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+    await firebaseAuth
+        .createUserWithEmailAndPassword(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    )
+        .then((auth) {
+      currentUser = auth.user;
+    }).catchError((error) {
+      Navigator.pop(context);
+      showDialog(
+          context: context,
+          builder: (c) {
+            return ErrorDialog(
+              message: error.message.toString(),
+            );
+          });
+    });
+    if (currentUser != null) {
+      saveDataToFirestore(currentUser!).then((value) {
+        Navigator.pop(context);
+        Route newRoute =
+            MaterialPageRoute(builder: ((context) => HomeScreen()));
+        Navigator.pushReplacement(context, newRoute);
+      });
+    }
+  }
+
+  Future saveDataToFirestore(User currentUser) async {
+    FirebaseFirestore.instance.collection("sellers").doc(currentUser.uid).set({
+      "sellerUid": currentUser.uid,
+      "sellerEmail": currentUser.email,
+      "sellerName": nameController.text.trim(),
+      "sellerAvatarUrl": sellerImageUrl,
+      "phone": phoneController.text.trim(),
+      "address": completeAddress,
+      "status": "approved",
+      "earnings": 0.0,
+      "lat": position!.latitude,
+      "lng": position!.longitude,
+    });
+    //save locally
+    SharedPreferences? sharedpreferences =
+        await SharedPreferences.getInstance();
+    await sharedpreferences.setString("uid", currentUser.uid);
+    await sharedpreferences.setString("name", nameController.text.trim());
+    await sharedpreferences.setString("email", currentUser.email.toString());
+    await sharedpreferences.setString("photoUrl", sellerImageUrl);
   }
 
   @override
