@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:seller/auth/auth_screen.dart';
 import 'package:seller/global/global.dart';
+import 'package:seller/uploadScreens/menus_upload_screens.dart';
+import 'package:seller/widgets/app_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -13,6 +15,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(
         flexibleSpace: Container(
           decoration: const BoxDecoration(
@@ -28,7 +31,18 @@ class _HomeScreenState extends State<HomeScreen> {
           sharedPreferences!.getString("name")!,
         ),
         centerTitle: true,
-        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (c) => MenuUploadScreen()));
+              },
+              icon: const Icon(
+                Icons.post_add,
+                size: 30,
+                color: Color.fromARGB(255, 255, 255, 255),
+              ),),
+        ],
       ),
       body: Center(
           child: ElevatedButton(
