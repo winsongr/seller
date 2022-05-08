@@ -106,20 +106,20 @@ class _MenuUploadScreenState extends State<MenuUploadScreen> {
               SimpleDialogOption(
                 child: const Text(
                   "Capture with Camera",
-                  style: TextStyle(color: Colors.grey),
+                  style: TextStyle(color: Colors.grey, fontSize: 20),
                 ),
                 onPressed: captureImageWithCamera,
               ),
               SimpleDialogOption(
                 child: const Text(
                   "Select from Gallery",
-                  style: TextStyle(color: Colors.grey),
+                  style: TextStyle(color: Colors.grey, fontSize: 20),
                 ),
                 onPressed: pickImageFromGallery,
               ),
               SimpleDialogOption(
-                child:
-                    const Text("Cancel", style: TextStyle(color: Colors.red)),
+                child: const Text("Cancel",
+                    style: TextStyle(color: Colors.red, fontSize: 20)),
                 onPressed: () => Navigator.pop(context),
               )
             ],
@@ -219,7 +219,7 @@ class _MenuUploadScreenState extends State<MenuUploadScreen> {
             width: 250,
             child: TextField(
               style: const TextStyle(color: Colors.black),
-              controller: shortInfoController,
+              controller: titleController,
               decoration: const InputDecoration(
                   hintText: "Menu Info",
                   hintStyle: TextStyle(color: Colors.green),
