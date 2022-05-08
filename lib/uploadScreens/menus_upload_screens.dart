@@ -1,8 +1,13 @@
 import 'dart:io';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart' as storageRef;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:seller/global/global.dart';
 import 'package:seller/mainSceens/home_screen.dart';
+import 'package:seller/widgets/error_dialog.dart';
+import 'package:seller/widgets/progress_bar.dart';
 
 class MenuUploadScreen extends StatefulWidget {
   const MenuUploadScreen({Key? key}) : super(key: key);
@@ -17,6 +22,9 @@ class _MenuUploadScreenState extends State<MenuUploadScreen> {
 
   TextEditingController shortInfoController = TextEditingController();
   TextEditingController titleController = TextEditingController();
+
+  bool uploading = false;
+  String uniqueIdName = DateTime.now().millisecondsSinceEpoch.toString();
 
   defaultScreen() {
     return Scaffold(
@@ -47,8 +55,7 @@ class _MenuUploadScreenState extends State<MenuUploadScreen> {
                   ));
             },
           )),
-      body: Container(
-          child: Center(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -79,7 +86,7 @@ class _MenuUploadScreenState extends State<MenuUploadScreen> {
             ),
           ],
         ),
-      )),
+      ),
     );
   }
 
@@ -166,16 +173,12 @@ class _MenuUploadScreenState extends State<MenuUploadScreen> {
             color: Colors.white,
           ),
           onPressed: () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (c) => const HomeScreen(),
-                ));
+            clearMenuUploadForm();
           },
         ),
         actions: [
           TextButton(
-            onPressed: () {},
+            onPressed: uploading ? null : () => validateUploadForm(),
             child: const Text(
               "Add",
               style: TextStyle(
@@ -189,7 +192,8 @@ class _MenuUploadScreenState extends State<MenuUploadScreen> {
         ],
       ),
       body: ListView(children: [
-        Container(
+        uploading == true ? linearProgress() : const Text(""),
+        SizedBox(
             height: 230,
             width: MediaQuery.of(context).size.width * 0.8,
             child: Center(
@@ -206,14 +210,124 @@ class _MenuUploadScreenState extends State<MenuUploadScreen> {
                     ),
                   )),
             )),
-        //  ListTile(
-        //     leading: const Icon(
-        //       Icons.perm_device_information,
-        //       color: Colors.cyan,
-        //     ),
-        //     title: Container(width: 250, child: TextField(style:,))),
+        ListTile(
+          leading: const Icon(
+            Icons.perm_device_information,
+            color: Colors.cyan,
+          ),
+          title: SizedBox(
+            width: 250,
+            child: TextField(
+              style: const TextStyle(color: Colors.black),
+              controller: shortInfoController,
+              decoration: const InputDecoration(
+                  hintText: "Menu Info",
+                  hintStyle: TextStyle(color: Colors.green),
+                  border: InputBorder.none),
+            ),
+          ),
+        ),
+        const Divider(
+          color: Colors.red,
+          thickness: 2,
+        ),
+        ListTile(
+          leading: const Icon(
+            Icons.perm_device_information,
+            color: Colors.cyan,
+          ),
+          title: SizedBox(
+            width: 250,
+            child: TextField(
+              style: const TextStyle(color: Colors.black),
+              controller: shortInfoController,
+              decoration: const InputDecoration(
+                  hintText: "Menu Title",
+                  hintStyle: TextStyle(color: Colors.green),
+                  border: InputBorder.none),
+            ),
+          ),
+        ),
+        const Divider(
+          color: Colors.red,
+          thickness: 2,
+        ),
       ]),
     );
+  }
+
+  clearMenuUploadForm() {
+    setState(() {
+      shortInfoController.clear();
+      titleController.clear();
+      imageXFile = null;
+    });
+  }
+
+  validateUploadForm() async {
+    if (imageXFile != null) {
+      if (shortInfoController.text.isNotEmpty &&
+          titleController.text.isNotEmpty) {
+        setState(() {
+          uploading = true;
+        });
+
+        String downloadUrl = await uploadImage(File(imageXFile!.path));
+
+        saveInfo(downloadUrl);
+      } else {
+        showDialog(
+            context: context,
+            builder: (c) {
+              return const ErrorDialog(
+                message: "Please Fill the text fields",
+              );
+            });
+      }
+    } else {
+      showDialog(
+          context: context,
+          builder: (c) {
+            return const ErrorDialog(
+              message: "Please pick an image",
+            );
+          });
+    }
+  }
+
+  saveInfo(String downloadUrl) {
+    final ref = FirebaseFirestore.instance
+        .collection("sellers")
+        .doc(sharedPreferences!.getString("uid"))
+        .collection("menus");
+    ref.doc(uniqueIdName).set({
+      "menuID": uniqueIdName,
+      "sellerUID": sharedPreferences!.getString("uid"),
+      "menuInfo": shortInfoController.text.toString(),
+      "menuTitle": titleController.text.toString(),
+      "publishedDate": DateTime.now(),
+      "status": "available",
+      "thumbnailUrl": downloadUrl,
+    });
+    clearMenuUploadForm();
+    setState(() {
+      uniqueIdName = DateTime.now().millisecondsSinceEpoch.toString();
+      uploading = false;
+    });
+  }
+
+  uploadImage(mImageFile) async {
+    storageRef.Reference reference =
+        storageRef.FirebaseStorage.instance.ref().child("menus");
+
+    storageRef.UploadTask uploadTask =
+        reference.child(uniqueIdName + ".jpg").putFile(mImageFile);
+
+    storageRef.TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() {});
+
+    String downloadURL = await taskSnapshot.ref.getDownloadURL();
+
+    return downloadURL;
   }
 
   @override
