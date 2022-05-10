@@ -1,25 +1,29 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:seller/auth/auth_screen.dart';
 import 'package:seller/global/global.dart';
+import 'package:seller/model/items.dart';
 import 'package:seller/model/menus.dart';
-import 'package:seller/uploadScreens/menus_upload_screens.dart';
+import 'package:seller/uploadScreens/items_upload_screen.dart';
 import 'package:seller/widgets/app_drawer.dart';
 import 'package:seller/widgets/info_design.dart';
+import 'package:seller/widgets/item_design.dart';
 import 'package:seller/widgets/progress_bar.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+import '../uploadScreens/menus_upload_screens.dart';
+
+class ItemsScreen extends StatefulWidget {
+  final Menus? model;
+
+  const ItemsScreen({Key? key, this.model}) : super(key: key);
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<ItemsScreen> createState() => _ItemsScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _ItemsScreenState extends State<ItemsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
       appBar: AppBar(
         flexibleSpace: Container(
           decoration: const BoxDecoration(
@@ -35,33 +39,38 @@ class _HomeScreenState extends State<HomeScreen> {
           sharedPreferences!.getString("name")!,
         ),
         centerTitle: true,
+        automaticallyImplyLeading: true,
         actions: [
           IconButton(
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (c) => const MenuUploadScreen()));
-            },
-            icon: const Icon(
-              Icons.post_add,
-              size: 30,
-              color: Color.fromARGB(255, 255, 255, 255),
-            ),
-          ),
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (c) =>
+                            ItemsUploadScreen(model: widget.model)));
+              },
+              icon: const Icon(
+                Icons.library_add,
+                color: Color.fromARGB(255, 255, 255, 255),
+              ))
         ],
       ),
+      drawer: const AppDrawer(),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const Text(
-              "My Menus",
+            Text(
+              "My " + widget.model!.menuTitle.toString() + "'s items",
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 20.0),
+              style: const TextStyle(fontSize: 20.0),
             ),
             StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection("sellers")
                     .doc(sharedPreferences!.getString("uid"))
                     .collection("menus")
+                    .doc(widget.model!.menuID)
+                    .collection("items").orderBy("publishedDate",descending: true)
                     .snapshots(),
                 builder: (context, snapshot) {
                   return !snapshot.hasData
@@ -73,14 +82,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                           ),
-                          itemCount: snapshot.data!.size,
+                          itemCount: snapshot.data?.size,
                           shrinkWrap: true,
                           itemBuilder: (BuildContext context, int index) {
-                            Menus model = Menus.fromJson(
-                                snapshot.data!.docs[index].data()
+                            Items model = Items.fromJson(
+                                snapshot.data?.docs[index].data()
                                     as Map<String, dynamic>);
 
-                            return InfoDesignWidget(
+                            return ItemDesignWidget(
                                 model: model, context: context);
                           },
                         );
